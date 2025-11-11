@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import './App.css';
 import AuraVisualization from './components/component_jsx/AuraVisualization';
 import TranscriptDisplay from './components/component_jsx/TranscriptDisplay';
@@ -6,6 +6,7 @@ import KeywordsDisplay from './components/component_jsx/KeywordsDisplay';
 import Controls from './components/component_jsx/Controls';
 import AppHeader from './components/component_jsx/AppHeader';
 import HeroSection from './components/component_jsx/HeroSection';
+import ThemeToggle from './components/component_jsx/ThemeToggle';
 import { useDeepgram } from './hooks/useDeepgram';
 import { useAudioStream } from './hooks/useAudioStream';
 import { analyzeSentiment } from './utils/api';
@@ -17,10 +18,32 @@ function App() {
   const [interimTranscript, setInterimTranscript] = useState('');
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
+  // Apply theme to body
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.remove('light-mode');
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+      document.body.classList.add('light-mode');
+    }
+  }, [isDarkMode]);
+
+  // Handle final transcript from Deepgram
   const handleFinalTranscript = useCallback(async (text) => {
     console.log('Final transcript:', text);
-    setTranscript(prev => prev + ' ' + text);
+    
+    // Append to existing transcript with a space
+    setTranscript(prev => {
+      if (prev.length === 0) {
+        return text;
+      }
+      return prev + ' ' + text;
+    });
+    
     setInterimTranscript('');
 
     try {
@@ -39,6 +62,7 @@ function App() {
     }
   }, []);
 
+  // Handle transcript updates
   const handleTranscript = useCallback((text, isFinal) => {
     if (isFinal) {
       handleFinalTranscript(text);
@@ -69,6 +93,7 @@ function App() {
       setInterimTranscript('');
       setKeywords([]);
       setSentiment(0);
+      setIsPaused(false);
 
       connectDeepgram();
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -82,16 +107,49 @@ function App() {
   const handleStop = useCallback(() => {
     stopRecording();
     disconnectDeepgram();
+    setIsPaused(false);
   }, [stopRecording, disconnectDeepgram]);
+
+  // Pause recording
+  const handlePause = useCallback(() => {
+    setIsPaused(true);
+    // Note: We keep the connections open, just stop sending audio
+    console.log('Recording paused');
+  }, []);
+
+  // Resume recording
+  const handleResume = useCallback(() => {
+    setIsPaused(false);
+    console.log('Recording resumed');
+  }, []);
+
+  // Clear transcript without stopping recording
+  const handleClear = useCallback(() => {
+    setTranscript('');
+    setInterimTranscript('');
+    setKeywords([]);
+    setSentiment(0);
+    console.log('Transcript cleared');
+  }, []);
+
+  // Toggle theme
+  const handleThemeToggle = useCallback(() => {
+    setIsDarkMode(prev => !prev);
+  }, []);
 
   const displayError = error || deepgramError || audioError;
 
   return (
     <div className="app">
       <AppHeader />
+      
+      {/* Theme Toggle - Top Right */}
+      <div className="theme-toggle-container">
+        <ThemeToggle isDark={isDarkMode} onToggle={handleThemeToggle} />
+      </div>
 
       <div className="visualization-container">
-        <AuraVisualization sentiment={sentiment} keywords={keywords} />
+        <AuraVisualization sentiment={sentiment} keywords={keywords} isDarkMode={isDarkMode} />
         <HeroSection isRecording={isRecording} />
       </div>
 
@@ -107,10 +165,15 @@ function App() {
         />
         <Controls
           isRecording={isRecording}
+          isPaused={isPaused}
           onStart={handleStart}
           onStop={handleStop}
+          onPause={handlePause}
+          onResume={handleResume}
+          onClear={handleClear}
           isConnected={deepgramConnected}
           error={displayError}
+          hasTranscript={transcript.length > 0}
         />
       </div>
 

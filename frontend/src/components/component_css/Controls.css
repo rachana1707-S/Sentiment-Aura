@@ -135,3 +135,53 @@
   text-align: center;
 }
 
+
+.pause-button {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.pause-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 30px rgba(245, 87, 108, 0.4);
+}
+
+.resume-button {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.resume-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 30px rgba(79, 172, 254, 0.4);
+}
+
+.clear-button {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: white;
+}
+
+.clear-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 30px rgba(250, 112, 154, 0.4);
+}
+
+/* Paused Indicator */
+.paused-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: rgba(255, 165, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 30px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.pause-icon {
+  font-size: 16px;
+  animation: pulse 1.5s ease-in-out infinite;
+}

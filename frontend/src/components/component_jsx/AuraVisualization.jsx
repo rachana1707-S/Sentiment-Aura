@@ -1,4 +1,6 @@
-import React from 'react';
+
+
+import React, { useEffect, useState } from 'react';
 import { ReactP5Wrapper } from 'react-p5-wrapper';
 
 function sketch(p5) {
@@ -8,14 +10,13 @@ function sketch(p5) {
   let scaleVal = 20;
   let zoff = 0;
   
-  // Sentiment-driven parameters
   let currentSentiment = 0;
   let targetSentiment = 0;
   let currentHue = 200;
   let currentSpeed = 1;
   let currentDensity = 0.5;
+  let isDarkMode = true;
 
-  // Smooth interpolation
   const lerp = (start, end, amt) => {
     return start + (end - start) * amt;
   };
@@ -23,15 +24,13 @@ function sketch(p5) {
   p5.setup = () => {
     p5.createCanvas(p5.windowWidth, p5.windowHeight);
     p5.colorMode(p5.HSB, 360, 100, 100, 100);
-    p5.background(0);
+    p5.background(isDarkMode ? 0 : 95);
 
     cols = Math.floor(p5.width / scaleVal);
     rows = Math.floor(p5.height / scaleVal);
 
-    // Initialize flow field
     flowField = new Array(cols * rows);
 
-    // Create particles
     for (let i = 0; i < 1000; i++) {
       particles.push(new Particle(p5));
     }
@@ -41,33 +40,33 @@ function sketch(p5) {
     if (props.sentiment !== undefined) {
       targetSentiment = props.sentiment;
     }
+    if (props.isDarkMode !== undefined) {
+      isDarkMode = props.isDarkMode;
+    }
   };
 
   p5.draw = () => {
-    // Fade effect for trails
-    p5.background(0, 0, 0, 10);
+    // Background with fade effect
+    if (isDarkMode) {
+      p5.background(0, 0, 0, 10);
+    } else {
+      p5.background(0, 0, 95, 8);  // Light beige with fade
+    }
 
-    // Smoothly interpolate sentiment
     currentSentiment = lerp(currentSentiment, targetSentiment, 0.05);
 
-    // Map sentiment to visual parameters
-    // Hue: Red (-1) -> Blue (0) -> Green (1)
     let targetHue;
     if (currentSentiment < 0) {
-      // Negative: Red to Blue
       targetHue = lerp(0, 240, (currentSentiment + 1));
     } else {
-      // Positive: Blue to Green
       targetHue = lerp(240, 120, currentSentiment);
     }
     currentHue = lerp(currentHue, targetHue, 0.05);
 
-    // Speed and density based on sentiment intensity
     let intensity = Math.abs(currentSentiment);
     currentSpeed = lerp(currentSpeed, 1 + intensity * 3, 0.05);
     currentDensity = lerp(currentDensity, 0.3 + intensity * 0.7, 0.05);
 
-    // Update flow field using Perlin noise
     let yoff = 0;
     for (let y = 0; y < rows; y++) {
       let xoff = 0;
@@ -83,12 +82,11 @@ function sketch(p5) {
     }
     zoff += 0.005 * currentSpeed;
 
-    // Update and display particles
     particles.forEach(particle => {
       particle.follow(flowField, cols, scaleVal);
       particle.update();
       particle.edges();
-      particle.show(p5, currentHue, currentDensity);
+      particle.show(p5, currentHue, currentDensity, isDarkMode);
     });
   };
 
@@ -99,7 +97,6 @@ function sketch(p5) {
     flowField = new Array(cols * rows);
   };
 
-  // Particle class
   class Particle {
     constructor(p5) {
       this.pos = p5.createVector(p5.random(p5.width), p5.random(p5.height));
@@ -130,9 +127,12 @@ function sketch(p5) {
       this.acc.mult(0);
     }
 
-    show(p5, hue, density) {
+    show(p5, hue, density, isDarkMode) {
       let alpha = density * 100;
-      p5.stroke(hue, 80, 100, alpha);
+      let brightness = isDarkMode ? 100 : 60;  // Darker particles in light mode
+      let saturation = isDarkMode ? 80 : 70;
+      
+      p5.stroke(hue, saturation, brightness, alpha);
       p5.strokeWeight(2);
       p5.line(this.pos.x, this.pos.y, this.prevPos.x, this.prevPos.y);
       this.updatePrev();
@@ -164,10 +164,10 @@ function sketch(p5) {
   }
 }
 
-const AuraVisualization = ({ sentiment = 0, keywords = [] }) => {
+const AuraVisualization = ({ sentiment = 0, keywords = [], isDarkMode = true }) => {
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
-      <ReactP5Wrapper sketch={sketch} sentiment={sentiment} keywords={keywords} />
+      <ReactP5Wrapper sketch={sketch} sentiment={sentiment} keywords={keywords} isDarkMode={isDarkMode} />
     </div>
   );
 };
