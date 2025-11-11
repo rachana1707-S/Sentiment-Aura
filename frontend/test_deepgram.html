@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Deepgram Connection</title>
+</head>
+<body>
+    <h1>Deepgram WebSocket Test</h1>
+    <button id="testBtn">Test Connection</button>
+    <div id="status"></div>
+    <div id="log"></div>
+
+    <script>
+        const API_KEY = 'YOUR_DEEPGRAM_API_KEY_HERE'; // Replace with your actual key
+
+        document.getElementById('testBtn').onclick = function() {
+            const status = document.getElementById('status');
+            const log = document.getElementById('log');
+            
+            status.innerHTML = 'Connecting...';
+            log.innerHTML = '';
+
+            const url = 'wss://api.deepgram.com/v1/listen?encoding=linear16&sample_rate=16000&channels=1&model=nova-2';
+            
+            const socket = new WebSocket(url, ['token', API_KEY]);
+            
+            socket.onopen = () => {
+                status.innerHTML = '✅ Connected successfully!';
+                log.innerHTML += '<p>Connection opened</p>';
+                socket.close();
+            };
+            
+            socket.onerror = (error) => {
+                status.innerHTML = '❌ Connection failed';
+                log.innerHTML += '<p>Error: ' + JSON.stringify(error) + '</p>';
+            };
+            
+            socket.onclose = (event) => {
+                log.innerHTML += `<p>Closed - Code: ${event.code}, Reason: ${event.reason}</p>`;
+                
+                if (event.code === 1006) {
+                    status.innerHTML = '❌ Failed - Invalid API key or network issue';
+                } else if (event.code === 1008) {
+                    status.innerHTML = '❌ Failed - Unauthorized';
+                }
+            };
+        };
+    </script>
+</body>
+</html>
