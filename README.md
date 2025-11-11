@@ -490,9 +490,9 @@ Contributions are welcome! Please follow these steps:
 
 **Project Maintainer:** Your Name
 
-- GitHub: [@yourusername]([https://github.com/yourusername](https://github.com/rachana1707-S))
+- GitHub: [@githublink](https://github.com/rachana1707-S)
 - Email: rachanasudhakar17@gmail.com
-- LinkedIn: [Your LinkedIn](www.linkedin.com/in/rachanasudhakar)
+- LinkedIn: [LinkedIn](www.linkedin.com/in/rachanasudhakar)
 
 ---
 
