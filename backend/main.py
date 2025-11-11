@@ -1,14 +1,15 @@
 #This is a FastAPI backend for sentiment analysis.
 #Our text → Backend validates → Groq AI analyzes → Returns JSON with sentiment
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
 import json
 from typing import List, Optional
-from groq import Groq # type: ignore
+from groq import Groq
 
 # Load environment variables
 load_dotenv()
@@ -195,14 +196,20 @@ async def process_text(request: TextRequest):
         print(f"Unexpected error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
-# Error handlers
+# Error handlers - FIXED: Now returns JSONResponse instead of dict
 @app.exception_handler(404)
-async def not_found_handler(request, exc):
-    return {"error": "Endpoint not found", "path": str(request.url)}
+async def not_found_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=404,
+        content={"error": "Endpoint not found", "path": str(request.url)}
+    )
 
 @app.exception_handler(500)
-async def internal_error_handler(request, exc):
-    return {"error": "Internal server error", "detail": str(exc)}
+async def internal_error_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Internal server error", "detail": str(exc)}
+    )
 
 if __name__ == "__main__":
     import uvicorn
