@@ -1,0 +1,127 @@
+import { useState, useCallback } from 'react';
+import './App.css';
+import AuraVisualization from './components/component_jsx/AuraVisualization';
+import TranscriptDisplay from './components/component_jsx/TranscriptDisplay';
+import KeywordsDisplay from './components/component_jsx/KeywordsDisplay';
+import Controls from './components/component_jsx/Controls';
+import AppHeader from './components/component_jsx/AppHeader';
+import HeroSection from './components/component_jsx/HeroSection';
+import { useDeepgram } from './hooks/useDeepgram';
+import { useAudioStream } from './hooks/useAudioStream';
+import { analyzeSentiment } from './utils/api';
+
+function App() {
+  const [sentiment, setSentiment] = useState(0);
+  const [keywords, setKeywords] = useState([]);
+  const [transcript, setTranscript] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const [error, setError] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleFinalTranscript = useCallback(async (text) => {
+    console.log('Final transcript:', text);
+    setTranscript(prev => prev + ' ' + text);
+    setInterimTranscript('');
+
+    try {
+      setIsProcessing(true);
+      const result = await analyzeSentiment(text);
+      
+      console.log('Sentiment analysis result:', result);
+      setSentiment(result.sentiment);
+      setKeywords(result.keywords);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to analyze sentiment:', err);
+      setError(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
+
+  const handleTranscript = useCallback((text, isFinal) => {
+    if (isFinal) {
+      handleFinalTranscript(text);
+    } else {
+      setInterimTranscript(text);
+    }
+  }, [handleFinalTranscript]);
+
+  const {
+    connect: connectDeepgram,
+    disconnect: disconnectDeepgram,
+    sendAudio,
+    isConnected: deepgramConnected,
+    error: deepgramError,
+  } = useDeepgram(handleTranscript, handleFinalTranscript);
+
+  const {
+    isRecording,
+    error: audioError,
+    startRecording,
+    stopRecording,
+  } = useAudioStream(sendAudio);
+
+  const handleStart = useCallback(async () => {
+    try {
+      setError(null);
+      setTranscript('');
+      setInterimTranscript('');
+      setKeywords([]);
+      setSentiment(0);
+
+      connectDeepgram();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await startRecording();
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+      setError('Failed to start recording: ' + err.message);
+    }
+  }, [connectDeepgram, startRecording]);
+
+  const handleStop = useCallback(() => {
+    stopRecording();
+    disconnectDeepgram();
+  }, [stopRecording, disconnectDeepgram]);
+
+  const displayError = error || deepgramError || audioError;
+
+  return (
+    <div className="app">
+      <AppHeader />
+
+      <div className="visualization-container">
+        <AuraVisualization sentiment={sentiment} keywords={keywords} />
+        <HeroSection isRecording={isRecording} />
+      </div>
+
+      <div className="ui-overlay">
+        <TranscriptDisplay 
+          transcript={transcript} 
+          interimTranscript={interimTranscript}
+          sentiment={sentiment}
+        />
+        <KeywordsDisplay 
+          keywords={keywords}
+          sentiment={sentiment}
+        />
+        <Controls
+          isRecording={isRecording}
+          onStart={handleStart}
+          onStop={handleStop}
+          isConnected={deepgramConnected}
+          error={displayError}
+        />
+      </div>
+
+      {isProcessing && (
+        <div className="processing-indicator">
+          <div className="spinner"></div>
+          <span>Analyzing...</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;

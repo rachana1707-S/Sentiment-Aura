@@ -1,9 +1,10 @@
 .transcript-display {
   position: fixed;
-  top: 100px;
-  left: 30px;
-  width: min(400px, calc(50vw - 50px));
-  max-height: 40vh;
+  top: 280px;
+  left: 40px;
+  width: min(500px, calc(50vw - 60px));
+  min-height: 280px;
+  max-height: 45vh;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
   backdrop-filter: blur(20px) saturate(180%);
   border: 2px solid rgba(255, 255, 255, 0.18);
@@ -17,29 +18,29 @@
 }
 
 .transcript-display:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: 
     0 12px 40px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .transcript-header {
-  padding: 20px 24px;
+  padding: 24px 28px;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .transcript-header::before {
   content: "📝";
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .transcript-header h3 {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: white;
   text-transform: uppercase;
@@ -47,11 +48,15 @@
 }
 
 .transcript-content {
-  padding: 20px 24px;
-  max-height: calc(40vh - 80px);
+  padding: 28px;
+  max-height: calc(45vh - 100px);
+  min-height: 200px;
   overflow-y: auto;
   color: white;
   line-height: 1.8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .transcript-content::-webkit-scrollbar {
@@ -75,7 +80,7 @@
 
 .transcript-text {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.8;
   color: rgba(255, 255, 255, 0.95);
   font-weight: 400;
@@ -84,7 +89,7 @@
 
 .interim-text {
   margin: 12px 0 0 0;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.8;
   color: rgba(255, 255, 255, 0.5);
   font-style: italic;
@@ -98,7 +103,7 @@
 
 .placeholder-text {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   color: rgba(255, 255, 255, 0.4);
   text-align: center;
   font-style: italic;
@@ -119,14 +124,16 @@
 /* Responsive */
 @media (max-width: 1200px) {
   .transcript-display {
-    width: calc(45vw - 40px);
+    width: calc(48vw - 50px);
   }
 }
 
 @media (max-width: 768px) {
   .transcript-display {
+    top: 240px;
     width: calc(100vw - 60px);
     left: 30px;
     max-height: 30vh;
+    min-height: 200px;
   }
 }
