@@ -1,8 +1,12 @@
+// frontend API service that connects your React app to the FastAPI backend
+// React Component → calls analyzeSentiment("text") → axios sends to http://localhost:8000/process_text 
+// → Backend processes it → axios returns result → Component displays it
+
 import axios from 'axios';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
-// Create axios instance with default config
+// Create axios instance with default config means Creates a reusable HTTP client
 const apiClient = axios.create({
   baseURL: BACKEND_URL,
   timeout: 10000,
