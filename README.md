@@ -19,6 +19,9 @@ Transform your voice into a living, breathing visual masterpiece. Sentiment Aura
 - 🔑 **Keyword Extraction** - Automatically identifies key topics
 - ⚡ **Instant Feedback** - See your emotions visualized in milliseconds
 - 📱 **Responsive Design** - Works on desktop, tablet, and mobile
+- ⏸️ **Pause & Resume** - Control recording without disconnecting
+- 🌓 **Theme Switching** - Dark and light mode support
+- 🗑️ **Smart Clearing** - Reset transcript without reconnecting
 
 ---
 
@@ -31,6 +34,8 @@ Transform your voice into a living, breathing visual masterpiece. Sentiment Aura
 3. Watch the aura change colors based on your emotions
 4. See keywords appear as you speak
 5. Marvel at the real-time sentiment analysis
+6. Use pause, resume, and clear controls as needed
+7. Switch between dark and light themes
 
 ### Visual Guide
 
@@ -83,7 +88,7 @@ Transform your voice into a living, breathing visual masterpiece. Sentiment Aura
 #### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/sentiment-aura.git
+git clone https://github.com/rachana1707-S/sentiment-aura.git
 cd sentiment-aura
 ```
 
@@ -164,13 +169,15 @@ sentiment-aura/
 │   │   │   │   ├── AuraVisualization.jsx   # Perlin noise canvas
 │   │   │   │   ├── TranscriptDisplay.jsx   # Live transcription box
 │   │   │   │   ├── KeywordsDisplay.jsx     # Keyword tags display
-│   │   │   │   └── Controls.jsx            # Start/Stop buttons
+│   │   │   │   ├── Controls.jsx            # Recording controls
+│   │   │   │   └── ThemeToggle.jsx         # Dark/Light mode toggle
 │   │   │   └── component_css/
 │   │   │       ├── AppHeader.css           # Header & modal styles
 │   │   │       ├── HeroSection.css         # Hero section styles
 │   │   │       ├── TranscriptDisplay.css   # Transcript box styles
 │   │   │       ├── KeywordsDisplay.css     # Keywords box styles
-│   │   │       └── Controls.css            # Button & indicator styles
+│   │   │       ├── Controls.css            # Button & indicator styles
+│   │   │       └── ThemeToggle.css         # Theme toggle styles
 │   │   ├── hooks/
 │   │   │   ├── useDeepgram.js              # WebSocket transcription
 │   │   │   └── useAudioStream.js           # Microphone capture
@@ -202,7 +209,8 @@ sentiment-aura/
 | `AuraVisualization.jsx` | p5.js Perlin noise visualization canvas |
 | `TranscriptDisplay.jsx` | Real-time transcript with dynamic borders |
 | `KeywordsDisplay.jsx` | Animated keyword tags |
-| `Controls.jsx` | Recording controls and status indicators |
+| `Controls.jsx` | Recording controls with pause, resume, clear |
+| `ThemeToggle.jsx` | Dark and light mode switcher |
 
 ### CSS Styles (`src/components/component_css/`)
 
@@ -212,7 +220,8 @@ sentiment-aura/
 | `HeroSection.css` | Hero title, icon animation, description |
 | `TranscriptDisplay.css` | Glassmorphism box, scrollbar, animations |
 | `KeywordsDisplay.css` | Keyword pills, float-in animations |
-| `Controls.css` | Buttons, recording indicator, status dots |
+| `Controls.css` | Buttons, recording indicator, status dots, pause states |
+| `ThemeToggle.css` | Theme toggle button and transitions |
 
 ### Import Pattern
 
@@ -314,6 +323,7 @@ Analyze sentiment of text
 - **Smooth Animations** - Gentle transitions and floating effects
 - **Responsive Layout** - Adapts to all screen sizes
 - **Real-time Border Effects** - Boxes glow based on sentiment
+- **Theme Support** - Dark mode (default) and light mode with warm beige palette
 
 ---
 
@@ -326,34 +336,48 @@ Analyze sentiment of text
 - Gradient logo animation with floating effect
 
 ### HeroSection
-- Animated sparkle icon (✨)
+- Animated sparkle icon
 - Gradient title text
 - Descriptive tagline
 - Auto-hides when recording starts
 
 ### AuraVisualization
-- 1000 particles flowing through Perlin noise field
-- Color mapped to sentiment (-1 to 1)
+- 2000 particles flowing through Perlin noise field
+- Color mapped directly to sentiment: 0° (red), 120° (green), 220° (blue)
 - Speed and density respond to emotion intensity
 - Smooth interpolation between states
+- Reduced background fade for persistent trails
+- Adapts brightness for dark and light themes
 
 ### TranscriptDisplay
 - Shows live speech-to-text
 - Auto-scrolling as text appears
-- Border glows red/blue/green based on sentiment
+- Border glows red, blue, or green based on sentiment
 - Displays interim results while speaking
+- Accumulates transcript across multiple utterances
+- Clears only when Clear button clicked or new recording started
 
 ### KeywordsDisplay
 - Extracts 3-7 meaningful keywords
 - Staggered fade-in animations (200ms delay each)
 - Pill-style tags with gradient backgrounds
 - Border responds to real-time sentiment
+- Hover effects with scale and glow
 
 ### Controls
-- Start/Stop recording buttons with gradient
-- Pulsing red dot when recording
-- Connection status indicator
-- Error banner for issues
+- Start, Stop, Pause, Resume recording buttons with gradients
+- Pulsing red dot when actively recording
+- Paused indicator when recording is paused
+- Clear button appears when recording is stopped and transcript exists
+- Connection status indicator with colored dot
+- Error banner for connection and API issues
+
+### ThemeToggle
+- Sun and moon icon toggle
+- Switches between dark mode and light mode
+- Smooth transitions for all UI elements
+- Updates visualization particle brightness
+- Positioned top-left below header
 
 ---
 
@@ -382,6 +406,10 @@ curl -X POST "http://localhost:8000/process_text" \
    - ✅ Transcripts appearing
    - ✅ Sentiment scores updating
    - ✅ Border colors changing
+   - ✅ Pause stops transcription
+   - ✅ Resume continues seamlessly
+   - ✅ Clear button resets everything
+   - ✅ Theme toggle updates entire UI
 
 ---
 
@@ -413,38 +441,18 @@ curl -X POST "http://localhost:8000/process_text" \
 - **Solution:** Verify import paths in JSX components
 - **Solution:** Check that CSS files are in `component_css/` folder
 
----
+**Problem:** Pause not stopping transcription
+- **Solution:** Verify isPausedRef is being checked in audio processor
+- **Solution:** Check console logs for pause and resume messages
 
-## 🚢 Deployment
+**Problem:** Particles showing yellow instead of red
+- **Solution:** Verify color mapping uses direct hue values (0 for red, 120 for green, 220 for blue)
+- **Solution:** Check sentiment value is negative (< -0.1) for red to appear
 
-### Backend Deployment
-
-**Recommended:** Railway, Render, or Fly.io
-
-```bash
-# Build for production
-pip install -r requirements.txt
-
-# Run with gunicorn
-gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-```
-
-### Frontend Deployment
-
-**Recommended:** Vercel, Netlify, or Cloudflare Pages
-
-```bash
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-**Environment Variables:**
-- Set `VITE_DEEPGRAM_API_KEY` in deployment dashboard
-- Set `VITE_BACKEND_URL` to your backend URL
-
+**Problem:** Transcript showing text twice
+- **Solution:** Ensure handleFinalTranscript sets transcript instead of appending when needed
+- **Solution:** Verify Deepgram is not sending duplicate final transcripts
+- 
 ---
 
 ## 📊 Performance
@@ -454,26 +462,8 @@ npm run preview
 - **Total Response Time:** <500ms
 - **Frame Rate:** 60 FPS (Perlin noise)
 - **Audio Processing:** Real-time streaming
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Code Organization Guidelines
-
-- Place all JSX components in `src/components/component_jsx/`
-- Place all CSS files in `src/components/component_css/`
-- Import CSS using relative path: `import '../component_css/ComponentName.css'`
-- Follow existing naming conventions
-
+- **Particle Count:** 2000 particles
+- **Background Persistence:** Reduced fade for visible trails
 ---
 
 ## 🙏 Acknowledgments
@@ -488,11 +478,11 @@ Contributions are welcome! Please follow these steps:
 
 ## 📧 Contact
 
-**Project Maintainer:** Your Name
+**Project Maintainer:** Rachana Sudhakar
 
-- GitHub: [@githublink](https://github.com/rachana1707-S)
+- GitHub: [@rachana1707-S](https://github.com/rachana1707-S)
 - Email: rachanasudhakar17@gmail.com
-- LinkedIn: [LinkedIn](www.linkedin.com/in/rachanasudhakar)
+- LinkedIn: [linkedin.com/in/rachanasudhakar](https://www.linkedin.com/in/rachanasudhakar)
 
 ---
 
