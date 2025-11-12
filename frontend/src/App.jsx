@@ -34,9 +34,14 @@ function App() {
 
   // Handle final transcript from Deepgram
   const handleFinalTranscript = useCallback(async (text) => {
+    // Don't process if paused
+    if (isPaused) {
+      console.log('Transcript ignored - recording is paused');
+      return;
+    }
+
     console.log('Final transcript:', text);
     
-    // Append to existing transcript with a space
     setTranscript(prev => {
       if (prev.length === 0) {
         return text;
@@ -60,16 +65,21 @@ function App() {
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [isPaused]);
 
   // Handle transcript updates
   const handleTranscript = useCallback((text, isFinal) => {
+    // Don't process if paused
+    if (isPaused) {
+      return;
+    }
+
     if (isFinal) {
       handleFinalTranscript(text);
     } else {
       setInterimTranscript(text);
     }
-  }, [handleFinalTranscript]);
+  }, [handleFinalTranscript, isPaused]);
 
   const {
     connect: connectDeepgram,
@@ -84,6 +94,8 @@ function App() {
     error: audioError,
     startRecording,
     stopRecording,
+    pauseRecording,
+    resumeRecording,
   } = useAudioStream(sendAudio);
 
   const handleStart = useCallback(async () => {
@@ -113,15 +125,16 @@ function App() {
   // Pause recording
   const handlePause = useCallback(() => {
     setIsPaused(true);
-    // Note: We keep the connections open, just stop sending audio
+    pauseRecording();
     console.log('Recording paused');
-  }, []);
+  }, [pauseRecording]);
 
   // Resume recording
   const handleResume = useCallback(() => {
     setIsPaused(false);
+    resumeRecording();
     console.log('Recording resumed');
-  }, []);
+  }, [resumeRecording]);
 
   // Clear transcript without stopping recording
   const handleClear = useCallback(() => {
@@ -143,13 +156,16 @@ function App() {
     <div className="app">
       <AppHeader />
       
-      {/* Theme Toggle - Top Right */}
       <div className="theme-toggle-container">
         <ThemeToggle isDark={isDarkMode} onToggle={handleThemeToggle} />
       </div>
 
       <div className="visualization-container">
-        <AuraVisualization sentiment={sentiment} keywords={keywords} isDarkMode={isDarkMode} />
+        <AuraVisualization 
+          sentiment={sentiment} 
+          keywords={keywords} 
+          isDarkMode={isDarkMode}
+        />
         <HeroSection isRecording={isRecording} />
       </div>
 

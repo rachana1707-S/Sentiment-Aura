@@ -1,6 +1,4 @@
-
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { ReactP5Wrapper } from 'react-p5-wrapper';
 
 function sketch(p5) {
@@ -31,7 +29,7 @@ function sketch(p5) {
 
     flowField = new Array(cols * rows);
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 2000; i++) {
       particles.push(new Particle(p5));
     }
   };
@@ -46,26 +44,32 @@ function sketch(p5) {
   };
 
   p5.draw = () => {
-    // Background with fade effect
     if (isDarkMode) {
-      p5.background(0, 0, 0, 10);
+      p5.background(0, 0, 0, 3);
     } else {
-      p5.background(0, 0, 95, 8);  // Light beige with fade
+      p5.background(0, 0, 95, 2);
     }
 
     currentSentiment = lerp(currentSentiment, targetSentiment, 0.05);
 
+    // Fixed color mapping
     let targetHue;
-    if (currentSentiment < 0) {
-      targetHue = lerp(0, 240, (currentSentiment + 1));
+    if (currentSentiment < -0.1) {
+      // Negative: Pure Red (0 degrees in HSB)
+      targetHue = 0;
+    } else if (currentSentiment > 0.1) {
+      // Positive: Green (120 degrees in HSB)
+      targetHue = 120;
     } else {
-      targetHue = lerp(240, 120, currentSentiment);
+      // Neutral: Blue (220 degrees in HSB)
+      targetHue = 220;
     }
-    currentHue = lerp(currentHue, targetHue, 0.05);
+    
+    currentHue = lerp(currentHue, targetHue, 0.08);
 
     let intensity = Math.abs(currentSentiment);
     currentSpeed = lerp(currentSpeed, 1 + intensity * 3, 0.05);
-    currentDensity = lerp(currentDensity, 0.3 + intensity * 0.7, 0.05);
+    currentDensity = lerp(currentDensity, 0.4 + intensity * 0.6, 0.05);
 
     let yoff = 0;
     for (let y = 0; y < rows; y++) {
@@ -129,8 +133,8 @@ function sketch(p5) {
 
     show(p5, hue, density, isDarkMode) {
       let alpha = density * 100;
-      let brightness = isDarkMode ? 100 : 60;  // Darker particles in light mode
-      let saturation = isDarkMode ? 80 : 70;
+      let brightness = isDarkMode ? 100 : 60;
+      let saturation = 90;  // Increased saturation for more vivid colors
       
       p5.stroke(hue, saturation, brightness, alpha);
       p5.strokeWeight(2);
